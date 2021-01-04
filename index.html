@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+    <link rel="stylesheet" src="css/progress.css">
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Document</title>
+</head>
+
+<body>
+    <h1> video player </h1>
+    <video src="gone.mp4" id="video" class="screen" poster="poster.png"></video>
+    <div class="controls">
+        <button class="btn" id="play">
+            <i class="fa fa-play fa-2x"></i>
+        </button>
+        <button class="btn" id="stop">
+            <i class="fa fa-stop fa-2x"></i>
+        </button>
+        <button class="rwd" data-icon="B" aria-label="rewind"><i class="fa fa-backward fa-2x"></i></button>
+        <button class="fwd" data-icon="F" aria-label="fast forward"><i class="fa fa-forward fa-2x"></i></button>
+        <input type="range" id="progress" class="progress" min="0" max="100" step="0.1" value="0" />
+
+        <span class="timestamp" id="timestamp">00:00</span>
+    </div>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+    <script src="annyang.min.js"></script>
+    <script>
+        const video = document.getElementById("video");
+        const play = document.getElementById("play");
+        const stop = document.getElementById("stop");
+        const timestamp = document.getElementById("timestamp");
+        const progress = document.getElementById('progress');
+        const rwd = document.querySelector('.rwd');
+        const fwd = document.querySelector('.fwd');
+        let intervalFwd;
+        let intervalRwd;
+        //play and pause video video
+
+        if (annyang) {
+            var commands = {
+                "play": function toggleVideoStatus() {
+                    if (video.paused) {
+                        
+                        video.play();
+                    }
+                    else {
+                        video.muted = true;
+                        video.pause();
+                    }
+                },
+                "stop": function stopVideo() {
+                           video.currentTime = 0;
+                            video.pause();
+                         },
+                 "forward": function  mediaForward() {
+            clearInterval(intervalRwd);
+            rwd.classList.remove('active');
+
+            if (fwd.classList.contains('active')) {
+                fwd.classList.remove('active');
+                clearInterval(intervalFwd);
+                video.play();
+            } else {
+                fwd.classList.add('active');
+                video.pause();
+                intervalFwd = setInterval(windForward, 200);
+            }
+        },
+                 "backward": function mediaBackward() {
+                       clearInterval(intervalFwd);
+                       fwd.classList.remove('active');
+
+                    if(rwd.classList.contains('active')) {
+                         rwd.classList.remove('active');
+                         clearInterval(intervalRwd);
+                          video.play();
+                   } else {
+                        rwd.classList.add('active');
+                        video.pause();
+                        intervalRwd = setInterval(windBackward, 200);
+  }
+}     
+
+            };
+
+
+
+
+            // Add our commands to annyang
+            annyang.addCommands(commands);
+
+            // Start listening. You can call this here, or attach this call to an event, button, etc.
+            annyang.start();
+        }
+
+
+
+
+
+        //forward and backward
+
+
+
+
+        // function mediaForward() {
+        //     clearInterval(intervalRwd);
+        //     rwd.classList.remove('active');
+
+        //     if (fwd.classList.contains('active')) {
+        //         fwd.classList.remove('active');
+        //         clearInterval(intervalFwd);
+        //         video.play();
+        //     } else {
+        //         fwd.classList.add('active');
+        //         video.pause();
+        //         intervalFwd = setInterval(windForward, 200);
+        //     }
+        // }
+
+        function windBackward() {
+            if (video.currentTime <= 3) {
+                rwd.classList.remove('active');
+                clearInterval(intervalRwd);
+                stopVideo();
+            } else {
+                video.currentTime -= 3;
+            }
+        }
+
+        function windForward() {
+            if (video.currentTime >= video.duration - 3) {
+                fwd.classList.remove('active');
+                clearInterval(intervalFwd);
+                stopVideo();
+            } else {
+                video.currentTime += 3;
+            }
+        }
+
+
+        // update play icon
+        function updatePlayIcon() {
+            if (video.paused) {
+                play.innerHTML = '<i class="fa fa-play fa-2x">';
+            }
+            else {
+                play.innerHTML = '<i class="fa fa-pause fa-2x">';
+            }
+        }
+
+        //stop video
+       
+        function updateProgress() {
+            progress.value = (video.currentTime / video.duration) * 100;
+            //get minnutes
+            let mins = Math.floor(video.currentTime / 60);
+            if (mins < 10) {
+                mins = '0' + String(mins)
+            }
+            //get secs
+            let secs = Math.floor(video.currentTime % 60);
+            if (secs < 10) {
+                secs = '0' + String(secs);
+            }
+            timestamp.innerHTML = `${mins}:${secs}`
+        }
+        function setVideoProgress() {
+            video.currentTime = (+progress.value * video.duration) / 100;
+        }
+        function stopVideo() {
+                           video.currentTime = 0;
+                            video.pause();
+                         }
+
+        //EVENT LISTNER
+        //video.addEventListener("click",toggleVideoStatus);
+        video.addEventListener('pause', updatePlayIcon);
+        video.addEventListener("play", updatePlayIcon);
+        video.addEventListener('timeupdate', updateProgress);
+
+        //play.addEventListener("click",toggleVideoStatus);
+        stop.addEventListener("click", stopVideo);
+        //rwd.addEventListener('click', mediaBackward);
+        //fwd.addEventListener('click', mediaForward);
+
+        progress.addEventListener('change', setVideoProgress);
+    </script>
+</body>
+
+</html>
